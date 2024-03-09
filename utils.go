@@ -2,6 +2,7 @@ package tgauth
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,6 +14,10 @@ import (
 var (
 	CookieName      = "X-telegram-data"
 	CookieSeparator = "&"
+)
+
+var (
+	ErrNoData = errors.New("no telegram data")
 )
 
 // FromJSON TelegramUserData from json
@@ -42,7 +47,7 @@ func FromCookie(r *http.Request) (data TelegramUserData, err error) {
 	cookie, err := r.Cookie(CookieName)
 	// if cookie not found or empty
 	if err != nil || cookie.Value == "" {
-		return TelegramUserData{}, err
+		return TelegramUserData{}, ErrNoData
 	}
 
 	// unescape cookie
