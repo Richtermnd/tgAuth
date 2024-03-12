@@ -35,7 +35,7 @@ func (u *TelegramUserData) IsTelegramAuthorization(token string) bool {
 func (u *TelegramUserData) IsExpiredData(ttl time.Duration) bool {
 	loginTime := time.Unix(u.AuthDate, 0).UTC()
 	sinceFromLogin := time.Since(loginTime)
-	return sinceFromLogin < ttl
+	return sinceFromLogin > ttl
 }
 
 // Generate hash from TelegramUserData
