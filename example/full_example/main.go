@@ -19,6 +19,7 @@ var (
 func init() {
 	flag.StringVar(&token, "token", "", "token")
 	flag.DurationVar(&ttl, "ttl", 12*time.Hour, "ttl")
+	flag.Parse()
 	if token == "" {
 		fmt.Println("token is empty")
 		os.Exit(1)
