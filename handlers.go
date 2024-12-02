@@ -2,17 +2,17 @@ package tgauth
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 )
 
-func LoginRequiredMiddleware(token string, ttl time.Duration) func(next http.Handler) http.Handler {
+// TokenExtractor func that can extract TelegramUserData from request
+type TokenExtractor func(r *http.Request) (TelegramUserData, error)
+
+func LoginRequiredMiddleware(extractor TokenExtractor, token string, ttl time.Duration) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			tokenString := r.Header.Get("Authorization")
-			user, err := FromTokenString(tokenString)
-
+			user, err := extractor(r)
 			// Invalid token string
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
@@ -38,8 +38,8 @@ func LoginRequiredMiddleware(token string, ttl time.Duration) func(next http.Han
 	}
 }
 
-func LoginHandler(loginWay func(r *http.Request) (TelegramUserData, error), token string, ttl time.Duration) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(loginWay TokenExtractor, sendWay TokenSender, token string, ttl time.Duration) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, err := loginWay(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -54,10 +54,7 @@ func LoginHandler(loginWay func(r *http.Request) (TelegramUserData, error), toke
 			http.Error(w, "data expired", http.StatusBadRequest)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		token := data.TokenString()
-		fmt.Fprintf(w, "{\"token\": \"%s\"}", token)
-
+		sendWay(data, w)
 		w.WriteHeader(http.StatusOK)
-	}
+	})
 }

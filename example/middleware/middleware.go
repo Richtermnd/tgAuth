@@ -13,7 +13,7 @@ const token = "your token"
 var ttl = time.Hour * 12
 
 func main() {
-	middleware := tgauth.LoginRequiredMiddleware(token, ttl)
+	middleware := tgauth.LoginRequiredMiddleware(tgauth.FromCookie, token, ttl)
 	http.Handle("/me", middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := tgauth.FromContext(r)
 		if err != nil {

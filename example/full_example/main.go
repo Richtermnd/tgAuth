@@ -28,7 +28,7 @@ func init() {
 
 func main() {
 	// Create a middleware
-	middleware := tgauth.LoginRequiredMiddleware(token, ttl)
+	middleware := tgauth.LoginRequiredMiddleware(tgauth.FromAuthorizationHeader, token, ttl)
 
 	// HTML page
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,7 @@ func main() {
 	})
 
 	// Login handler
-	http.HandleFunc("POST /login", tgauth.LoginHandler(tgauth.FromJSON, token, ttl))
+	http.Handle("POST /login", tgauth.LoginHandler(tgauth.FromAuthorizationHeader, tgauth.SendJson, token, ttl))
 
 	// User info from token.S
 	http.Handle("GET /me", middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
